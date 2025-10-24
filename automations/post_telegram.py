@@ -4,9 +4,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "queue.csv"
 
-BOT = os.getenv("8257117489:AAHjXvzYt8jiUsC6dxiAzTTuhClqLFJ6xkA", "")
-CHAT = os.getenv("@finanzas_mkpato", "")
-PRODUCT = os.getenv("https://go.hotmart.com/F102330634N?dp=1", "")
+BOT = os.getenv("TELEGRAM_BOT_TOKEN", "")
+CHAT = os.getenv("TELEGRAM_CHAT_ID", "")
+PRODUCT = os.getenv("PRODUCT_URL", "")
 
 def last_done():
     with open(DATA, newline='', encoding='utf-8') as f:
