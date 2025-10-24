@@ -1,49 +1,36 @@
 name: Auto Publish Daily
-
 on:
   schedule:
-    - cron: "5 7 * * *"   # Corre cada día a las 09:05 Madrid aprox
+    - cron: "5 7 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  run:
+  publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
-
-      - name: Generate blog post
+      - run: pip install requests
+      - name: Generar post
         env:
           PRODUCT_URL: ${{ secrets.PRODUCT_URL }}
           AFFILIATE_TAG: ${{ secrets.AFFILIATE_TAG }}
-        run: |
-          python automations/build_blog.py
-
-      - name: Post to Telegram
+        run: python automations/build_blog.py
+      - name: Enviar a Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           PRODUCT_URL: ${{ secrets.PRODUCT_URL }}
-        run: |
-          python automations/post_telegram.py
-
-      - name: Commit and push changes
+        run: python automations/post_telegram.py
+      - name: Commit
         run: |
           git config user.name "auto-publisher"
           git config user.email "actions@users.noreply.github.com"
           git add -A
-          git commit -m "chore: publish $(date -u +'%Y-%m-%d')" || echo "No changes"
+          git commit -m "Auto publish $(date -u +'%Y-%m-%d')" || echo "No changes"
           git push
