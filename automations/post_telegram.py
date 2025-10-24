@@ -1,25 +1,32 @@
 import os, csv, requests
 from pathlib import Path
+
 ROOT = Path(__file__).resolve().parents[1]
-DATA = ROOT/"data"/"queue.csv"
-BOT=os.environ.get("TELEGRAM_BOT_TOKEN",""); CHAT=os.environ.get("TELEGRAM_CHAT_ID","")
+DATA = ROOT / "data" / "queue.csv"
+
+BOT = os.getenv("8257117489:AAHjXvzYt8jiUsC6dxiAzTTuhClqLFJ6xkA", "")
+CHAT = os.getenv("@finanzas_mkpato", "")
+PRODUCT = os.getenv("https://go.hotmart.com/F102330634N?dp=1", "")
+
 def last_done():
-    rows=list(csv.DictReader(open(DATA,encoding='utf-8')))
+    with open(DATA, newline='', encoding='utf-8') as f:
+        rows = list(csv.DictReader(f))
     for r in reversed(rows):
-        if r.get("status","").lower()=="done": return r
-def send(text, image=None):
-    if not BOT or not CHAT: print("Faltan credenciales Telegram"); return
-    if image:
-        url=f"https://api.telegram.org/bot{BOT}/sendPhoto"
-        data={"chat_id":CHAT,"caption":text,"parse_mode":"HTML","photo":image}
-    else:
-        url=f"https://api.telegram.org/bot{BOT}/sendMessage"
-        data={"chat_id":CHAT,"text":text,"parse_mode":"HTML","disable_web_page_preview":False}
-    r=requests.post(url, data=data, timeout=30); print("Telegram:", r.status_code)
+        if r["status"].lower() == "done":
+            return r
+
+def send(msg, image=None):
+    if not BOT or not CHAT:
+        print("Faltan credenciales Telegram"); return
+    url = f"https://api.telegram.org/bot{BOT}/sendMessage"
+    data = {"chat_id": CHAT, "text": msg, "parse_mode": "HTML"}
+    requests.post(url, data=data, timeout=30)
+
 def main():
-    r=last_done()
-    if not r: print("Sin post publicado hoy"); return
-    product=os.environ.get("PRODUCT_URL",""); url=r.get("url","") or product
-    text=f"<b>{r['title']}</b>\n\n{r['body']}\n\n➡️ <a href='{url}'>Accede aquí</a>"
-    image=(r.get("image","") or None); send(text,image)
-if __name__=="__main__": main()
+    r = last_done()
+    if not r: print("No hay post publicado."); return
+    text = f"<b>{r['title']}</b>\n\n{r['body']}\n\n➡️ <a href='{PRODUCT or r['url']}'>Accede aquí</a>"
+    send(text)
+
+if __name__ == "__main__":
+    main()
